@@ -14,21 +14,21 @@ function testlib() {
  * Adds the menu item on open. 
  */
 function onOpen(e) {
-  DocumentApp.getUi()
-  	.createMenu('TNY')
-  	.addItem('Download as .puz', 'starter')
-  	.addToUi();
+	DocumentApp.getUi()
+		.createMenu('Puzzle')
+		.addItem('Download as .puz', 'starter')
+		.addToUi();
 }
 
 /** 
  * Returns an HTML dialog with the download link.
  */
 function starter() {
-  var html = HtmlService.createTemplateFromFile('dialog')
-    .evaluate()
-    .setWidth(300)
-    .setHeight(150); 
-  DocumentApp.getUi().showModalDialog(html, 'Download');
+	var html = HtmlService.createTemplateFromFile('dialog')
+		.evaluate()
+		.setWidth(300)
+		.setHeight(150); 
+	DocumentApp.getUi().showModalDialog(html, 'Download');
 }
 
 /*
@@ -110,7 +110,7 @@ function makeGrid(gridArr) {
 				{'isBlockCell': true} :
 				{'solution': ltr}
 		})
-	})
+	});
 	return gridObj;
 }
 
@@ -126,6 +126,6 @@ function makeClues(clueArr) {
 		} else if (parts[2] === 'D') {
 			clues.down[parts[1]] = parts[3]
 		}
-	})
+	});
 	return clues;
 }
