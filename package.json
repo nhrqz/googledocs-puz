@@ -8,8 +8,8 @@
     "deploy": "rm -rf dist && npm run gas && cd dist && clasp push",
     "init": "rm -rf dist && npm run gas && clasp create --rootdir ./dist --parentId "
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Nick Henriquez <mail@nicholashenriquez.com>",
+  "license": "GPL-3.0",
   "dependencies": {
     "buffer": "^5.4.3",
     "buffer-json": "^2.0.0",
