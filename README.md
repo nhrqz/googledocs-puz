@@ -22,7 +22,13 @@ To initiate the project on an existing Google Doc:
 npm run init -- <PARENT DOCUMENT ID>
 ```
 
-To re-deploy after making changes:
+To re-initiate the project on a different (existing) Google Doc: 
+
+```sh
+npm run reinit -- <PARENT DOCUMENT ID>
+```
+
+To re-deploy the GAS project after making changes:
 
 ```sh
 npm run deploy
