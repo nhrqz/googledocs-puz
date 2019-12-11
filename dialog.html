@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base target="_top">
+		<style>
+			#output {margin-bottom: 38px}
+			#button {margin-left: 5px;}
+			#buttons {position: fixed; bottom: 0px; right: 0px;}
+		</style>
+		<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+	</head>
+	<body>
+		<? var puz = createPuz(); ?>
+
+		<p id="output">Loading...</p>
+		<div id="buttons">
+			<button id="close-button" onclick="google.script.host.close()">Close</button>
+			<a id="download" download='<?= puz.filename ?>' href='data:;base64,<?= puz.data ?>'>
+				<button id="dl-button" class="action" disabled>Download</button>
+			</a>
+		</div>
+	</body>
+	<script>
+		function allowDl() {
+			var puztitle = document.getElementById('download').getAttribute('download');
+			var outputText = document.getElementById('output');
+			outputText.innerHTML = 'Download ' + puztitle + '?';
+			document.getElementById("dl-button").disabled = false;
+		}
+
+		window.addEventListener('load', allowDl)
+	</script>
+</html>

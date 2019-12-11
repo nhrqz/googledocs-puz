@@ -1,0 +1,27 @@
+{
+  "name": "googledocs-puz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "gas": "webpack --config webpack.gas.js ",
+    "deploy": "rm -rf dist && npm run gas && cd dist && clasp push",
+    "init": "rm -rf dist && npm run gas && clasp create --rootdir ./dist --parentId "
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "buffer": "^5.4.3",
+    "buffer-json": "^2.0.0",
+    "regenerator-runtime": "^0.13.3",
+    "xpuz": "git+https://github.com/nhrqz/xpuz.git"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.1.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  }
+}
