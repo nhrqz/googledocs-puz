@@ -6,7 +6,7 @@
   "scripts": {
     "gas": "webpack --config webpack.gas.js ",
     "deploy": "rm -rf dist && npm run gas && cd dist && clasp push",
-    "init": "rm -rf dist && npm run gas && clasp create --rootdir ./dist --parentId "
+    "init": "rm -rf dist && npm run gas && clasp create --parentId "
   },
   "author": "Nick Henriquez <mail@nicholashenriquez.com>",
   "license": "GPL-3.0",
