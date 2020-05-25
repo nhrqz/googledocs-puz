@@ -41,6 +41,7 @@ module.exports = {
         'appsscript.json',
         '.clasp.json',
         'dialog.html',
+        'upload.html'
       ])
   ]
 };

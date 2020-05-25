@@ -17,6 +17,7 @@ function onOpen(e) {
 	DocumentApp.getUi()
 		.createMenu('Puzzle')
 		.addItem('Download as .puz', 'starter')
+		.addItem('Upload .puz', 'uploadStarter')
 		.addToUi();
 }
 
@@ -29,6 +30,45 @@ function starter() {
 		.setWidth(300)
 		.setHeight(150); 
 	DocumentApp.getUi().showModalDialog(html, 'Download');
+}
+
+function uploadStarter() {
+	var html = HtmlService.createTemplateFromFile('upload')
+		.evaluate()
+		.setWidth(300)
+		.setHeight(200);
+	DocumentApp.getUi().showModalDialog(html, 'Upload .puz');
+}
+
+
+
+async function processUploadFile(base64data) {
+	var raw = base64data.replace(/^data.*?base64,/, '');
+	var decode = Utilities.base64Decode(raw);
+	var puz = await AppLib.getPuz(decode);
+
+	console.log(puz.grid);
+	Logger.log(puz.grid);
+
+	var formatPuz = formatFromPuz(puz);
+
+
+	var style = {};
+	style[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] =
+		DocumentApp.HorizontalAlignment.RIGHT;
+	style[DocumentApp.Attribute.FONT_FAMILY] = 'Roboto Mono';
+	style[DocumentApp.Attribute.FONT_SIZE] = 11;
+
+	var body = DocumentApp.getActiveDocument().getBody();
+	body.setText(formatPuz);
+	body.setAttributes(style);
+	body.getParagraphs().forEach(para => {
+		para.setIndentFirstLine(0);
+		para.setIndentStart(144);
+	})
+
+
+	Logger.log('processed!')
 }
 
 /*
@@ -128,4 +168,48 @@ function makeClues(clueArr) {
 		}
 	});
 	return clues;
+}
+
+function formatFromPuz(puz) {
+	var formatInfo = `${puz.info.title}\n${puz.info.author}`;
+	
+	var formatGrid = puz.grid.map(row => {
+		return row.map(cell => {
+			if (cell.isBlockCell) {
+				return '.'
+			} else {
+				return cell.solution
+			}
+		}).join(' ')
+	}).join('\n');
+
+	var acrosses = Object.keys(puz.clues.across);
+	var downs = Object.keys(puz.clues.down);
+	var flatGrid = puz.grid.flat();
+
+	var formatCluesA = acrosses.map(num => {
+		var solution = '';
+		flatGrid.forEach((cell) => {
+			if (!cell.isBlockCell) {
+				if (cell.containingClues.across === parseInt(num)) {
+					solution += cell.solution;
+				}
+			}
+		});
+		return `${num}A\t${solution}\t${puz.clues.across[num]}`
+	}).join('\n')
+
+	var formatCluesD = downs.map(num => {
+		var solution = '';
+		flatGrid.forEach((cell) => {
+			if (!cell.isBlockCell) {
+				if (cell.containingClues.down === parseInt(num)) {
+					solution += cell.solution;
+				}
+			}
+		});
+		return `${num}D\t${solution}\t${puz.clues.down[num]}`
+	}).join('\n')
+
+	return `${formatInfo}\n\n${formatGrid}\n\n${formatCluesA}\n\n${formatCluesD}`;
 }

@@ -1,3 +1,5 @@
+import { parse } from "buffer-json";
+
 require("regenerator-runtime/runtime");
 
 var Buffer = require('buffer/').Buffer;
@@ -45,9 +47,24 @@ function makePuz(puzobj) {
   }
 }
 
+async function getPuz(byteArray) {
+  try {
+    let parser = new Parsers.PUZ;
+    let puzBuff = Buffer.from(byteArray);
+
+    let puzData = await parser.parse(puzBuff);
+    console.log(puzData.info.title);
+    return puzData;
+  } catch(e) {
+    console.log('Sad getPuz error.')
+    console.log(e);
+  }
+}
+
 const test = () => 'lib is working';
 
 export {
+  getPuz,
   makePuz,
   test
 };
