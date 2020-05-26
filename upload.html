@@ -15,14 +15,6 @@
       window.addEventListener('load', preventFormSubmit);
     
       function handleFormSubmit(uploadForm) {
-        // google
-        //   .script
-        //   .run
-        //   .withSuccessHandler(doSuccess)
-        //   .withFailureHandler(updateDiv)
-        //   .processUploadFile(uploadForm);
-        
-        // disableForm();
 
         const files = document.getElementById('myfile').files;
         if (files.length === 0) {
@@ -43,13 +35,13 @@
         }
       }
 
-      function process(blob) {
+      function process(puzfile) {
         google
           .script
           .run
           .withSuccessHandler(doSuccess)
           .withFailureHandler(updateDiv)
-          .processUploadFile(blob);
+          .processUploadFile(puzfile);
       }
     
       function doSuccess() {
@@ -77,7 +69,8 @@
 		<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
 	</head>
 	<body>
-		<p>Choose a .puz file to upload:</p>
+    <p>Choose a .puz file to upload:</p>
+    <p>Any existing text in the document will be overwritten.</p>
     <form id="myForm" onsubmit="handleFormSubmit(this)">
       <!-- <p>Choose a file</p> -->
       <input name="myfile" id="myfile" type="file" accept=".puz"/>
