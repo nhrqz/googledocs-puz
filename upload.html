@@ -18,7 +18,7 @@
 
         const files = document.getElementById('myfile').files;
         if (files.length === 0) {
-          updateDiv('no files selected');
+          updateDiv('Please choose a file.');
         } else {
           disableForm();
           updateDiv(`Uploading ${files[0].name} ...`);
@@ -40,7 +40,7 @@
           .script
           .run
           .withSuccessHandler(doSuccess)
-          .withFailureHandler(updateDiv)
+          .withFailureHandler(doFailure)
           .processUploadFile(puzfile);
       }
     
@@ -55,6 +55,14 @@
         }
       }
     
+      function doFailure(e) {
+        updateDiv(e.message);
+        var inputs = document.getElementsByTagName('input');
+        for (var input of inputs) {
+          input.disabled = false;
+        }
+      }
+
       function updateDiv(string) {
         var div = document.getElementById('output');
         div.innerHTML = '<p>' + string + '</p>';

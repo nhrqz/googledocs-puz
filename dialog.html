@@ -5,7 +5,7 @@
 		<style>
 			#output {margin-bottom: 38px}
 			#button {margin-left: 5px;}
-			#buttons {position: fixed; bottom: 0px; right: 0px;}
+			#download:hover {text-decoration: none;}
 		</style>
 		<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
 	</head>
@@ -14,10 +14,10 @@
 
 		<p id="output">Loading...</p>
 		<div id="buttons">
-			<button id="close-button" onclick="google.script.host.close()">Close</button>
 			<a id="download" download='<?= puz.filename ?>' href='data:;base64,<?= puz.data ?>'>
 				<button id="dl-button" class="action" disabled>Download</button>
 			</a>
+			<button id="close-button" onclick="google.script.host.close()">Close</button>
 		</div>
 	</body>
 	<script>

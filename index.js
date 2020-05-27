@@ -18,8 +18,8 @@ function onOpen(e) {
 		.createMenu('Puzzle')
 		.addItem('Upload .puz', 'uploadStarter')
 		.addItem('Download as .puz', 'starter')
-		.addItem('JPZ test', 'jpzTest')
-		.addItem('JPZ download test', 'jpzStarter')
+		// .addItem('JPZ test', 'jpzTest')
+		.addItem('Download as .jpz', 'jpzStarter')
 		.addToUi();
 }
 
@@ -38,7 +38,7 @@ function jpzStarter() {
 	var html = HtmlService.createTemplateFromFile('jpzDialog')
 		.evaluate()
 		.setWidth(300)
-		.setHeight(150);
+		.setHeight(100);
 	DocumentApp.getUi().showModalDialog(html, 'Download');
 }
 
@@ -56,7 +56,7 @@ function uploadStarter() {
 /**
  * Function to make JPZ
  */
-function jpzTest() {
+function makeJpzObj() {
 	var paras = getDocParasJPZ(activeDoc).filter(para => para.getText().trim());
 	var paraTexts = paras.map(para => para.getText());
 	var obj = {
@@ -108,30 +108,31 @@ function jpzTest() {
  * @param {*} base64data 
  */
 async function processUploadFile(base64data) {
-	var raw = base64data.replace(/^data.*?base64,/, '');
-	var decode = Utilities.base64Decode(raw);
-	var puz = await AppLib.getPuz(decode);
+	try {
+		var raw = base64data.replace(/^data.*?base64,/, '');
+		var decode = Utilities.base64Decode(raw);
+		var puz = await AppLib.getPuz(decode);
 
-	console.log(puz.grid);
-	Logger.log(puz.grid);
+		var formatPuz = formatPuzForDoc(puz);
 
-	var formatPuz = formatPuzForDoc(puz);
+		var style = {};
+		style[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] =
+			DocumentApp.HorizontalAlignment.RIGHT;
+		style[DocumentApp.Attribute.FONT_FAMILY] = 'Roboto Mono';
+		style[DocumentApp.Attribute.FONT_SIZE] = 11;
 
-	var style = {};
-	style[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] =
-		DocumentApp.HorizontalAlignment.RIGHT;
-	style[DocumentApp.Attribute.FONT_FAMILY] = 'Roboto Mono';
-	style[DocumentApp.Attribute.FONT_SIZE] = 11;
+		var body = DocumentApp.getActiveDocument().getBody();
+		body.setText(formatPuz);
+		body.setAttributes(style);
+		body.getParagraphs().forEach(para => {
+			para.setIndentFirstLine(0);
+			para.setIndentStart(144);
+		})
+	} catch (e) {
+		throw new Error ('Unable to upload. Puz file may be corrupt.')
+	}
 
-	var body = DocumentApp.getActiveDocument().getBody();
-	body.setText(formatPuz);
-	body.setAttributes(style);
-	body.getParagraphs().forEach(para => {
-		para.setIndentFirstLine(0);
-		para.setIndentStart(144);
-	})
-
-	Logger.log('processed!')
+	// Logger.log('processed!')
 }
 
 /*
@@ -142,24 +143,35 @@ async function processUploadFile(base64data) {
  * @returns {string} puz.data - The file (base64 encoded.)
  */
 function createPuz() {
-	var puzObj = makePuzObj(activeDoc);
-	var puzBuf = JSON.parse(AppLib.makePuz(puzObj));
-	var puzB64 = puzBuf.data.replace('base64:', '');
-	var docName = activeDoc.getName();
-	return {
-		filename: `${docName}.puz`,
-		data: puzB64
-	};
+	try {
+		var puzObj = makePuzObj(activeDoc);
+		var puzBuf = JSON.parse(AppLib.makePuz(puzObj));
+		var puzB64 = puzBuf.data.replace('base64:', '');
+		var docName = activeDoc.getName();
+		return {
+			filename: `${docName}.puz`,
+			data: puzB64
+		};
+	} catch (e) {
+		throw new Error ('Couldn\'t make a PUZ file. Check document formatting.')
+	}
 }
 
+/**
+ * creates a jpz file (XML, but base-64 encoded for ease of download.)
+ */
 function createJpz() {
-	var jpzXml = jpzTest();
-	var jpzB64 = Utilities.base64Encode(jpzXml, Utilities.Charset.UTF_8);
-	var docName = activeDoc.getName();
-	return {
-		filename: `${docName}.jpz`,
-		data: jpzB64
-	};
+	try {
+		var jpzXml = makeJpzObj();
+		var jpzB64 = Utilities.base64Encode(jpzXml, Utilities.Charset.UTF_8);
+		var docName = activeDoc.getName();
+		return {
+			filename: `${docName}.jpz`,
+			data: jpzB64
+		};
+	} catch (e) {
+		throw new Error ('Couldn\'t make a JPZ file. Check document formatting.')
+	}
 }
 
 /*
@@ -180,18 +192,8 @@ function getDocParas(doc) {
 
 /*
  * Function to get all document text as an array of paragraphs.
- *
- * @param {Object} doc - The document
- * @return {string[]} An array of trimmed strings
  */
 function getDocParasJPZ(doc) {
-	// var paras = doc.getBody().getParagraphs();
-
-	// var paraTexts = paras.map(para => {
-	// 	return para.getText().trim();
-	// });
-
-	// return paraTexts;
 	return doc.getBody().getParagraphs();
 }
 
@@ -256,19 +258,19 @@ function makeGrid(gridArr) {
  */
 function makeGridJPZ(gridArr) {
 	grid = gridArr.map(rowStr => rowStr.trim().split(' '));
-	var i = 0;
+	var numCounter = 0;
 
 	gridObj = grid.map((row, rowIndex) => {
 		return row.map((cell, cellIndex) => {
       var above = rowIndex === 0 ? '.' : grid[rowIndex - 1][cellIndex];
       var prev = cellIndex === 0 ? '.' : row[cellIndex - 1];
 			if ((above === '.' || prev === '.') && cell !== '.') {
-				i++;
+				numCounter++;
         return {
 					'solution': cell,
 					'x': cellIndex + 1,
 					'y': rowIndex + 1,
-					'number': i.toString()
+					'number': numCounter.toString()
 				}
 			} else if (cell === '.') {
 				return {
@@ -289,6 +291,14 @@ function makeGridJPZ(gridArr) {
 	return gridObj;
 }
 
+/**
+ * Complicated function to label create a list of words by the cells they
+ * are comprised of. Word ids start at 1 and increase by one, in the standard
+ * order of crossword clue lists (that is, all of the acrosses starting from 1A,
+ * and then all of the downs starting from 1D.)
+ * 
+ * @param {*} jpzGridObj 
+ */
 function countJPZWords(jpzGridObj) {
 	var cells = [];
 	var wordCounter = 0;
@@ -309,7 +319,6 @@ function countJPZWords(jpzGridObj) {
 				})	
 			}
 		}
-		// wordCounter++;
 	}
 
 	// loop for downs
@@ -390,9 +399,14 @@ function makeCluesJPZ(clueArr) {
 	return clues;
 }
 
+/**
+ * For each paragraph, add {{{i}}} tags around italics (later converted to 
+ * <i> tags in the XML.)
+ * 
+ * @param {*} para 
+ */
 function processItals(para) {
 	var textElem = para.editAsText();
-	// console.log(`textElem type: ${typeof textElem}`)
 	if (textElem.isItalic() === null) {
 		var string = '';
 		var text = textElem.getText();
@@ -475,6 +489,12 @@ function formatCluesForDoc(clues, dir, dirSuffix, flatGrid) {
 }
 
 
+/**
+ * XML builder... should probably be split into separate functions
+ * 
+ * @param {*} jpzObj 
+ * @param {*} numWords 
+ */
 function makeJPZXML(jpzObj, numWords) {
 	var xDoc = XmlService.parse(`<crossword-compiler-applet>
 		<rectangular-puzzle>
@@ -549,6 +569,7 @@ function makeJPZXML(jpzObj, numWords) {
 	})
 
 	xwElem.addContent(aClues);
+	
 	// downs
 	var dClues = XmlService.createElement('clues');
 	dClues.addContent(
@@ -570,10 +591,10 @@ function makeJPZXML(jpzObj, numWords) {
 
 	var xmlText = XmlService.getPrettyFormat().format(xDoc);
 
-	return xmlText.replace(/{{{/g, '<')
-								.replace(/}}}/g, '>');
+	return xmlText.replace(/{{{/g, '<').replace(/}}}/g, '>');
 }
 
+// replace non-xml safe characters
 function sanitizeClueText(clueText) {
 	return clueText.replace(/</g, '&lt;')
 								 .replace(/>/g, '&gt;')
