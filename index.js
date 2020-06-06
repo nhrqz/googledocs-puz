@@ -1,3 +1,5 @@
+// v1.2c test
+
 var activeDoc = DocumentApp.getActiveDocument();
 var gridRegex = /^[A-Z\.]( [A-Z\.])+$/;
 var clueRegex = /^(\d+)([AD])\t[A-Z]{3,}\t(.*)$/;
