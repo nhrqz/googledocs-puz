@@ -15,7 +15,7 @@
     "buffer": "^5.4.3",
     "buffer-json": "^2.0.0",
     "regenerator-runtime": "^0.13.3",
-    "xpuz": "git+https://github.com/nhrqz/xpuz.git"
+    "xpuz": "github:nhrqz/xpuz#master"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",

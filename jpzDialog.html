@@ -10,11 +10,11 @@
 		<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
 	</head>
 	<body>
-		<? var puz = createPuz(); ?>
+		<? var puz = createJpz(); ?>
 
 		<p id="output">Loading...</p>
 		<div id="download-container">
-			<a id="<?= puz.filename ?>" download='<?= puz.filename ?>' href='data:application/octet;base64,<?= puz.data ?>'>
+			<a id="<?= puz.filename ?>" download='<?= puz.filename ?>' href='data:text/xml;base64,<?= puz.data ?>'>
 				<!-- <button id="dl-button" class="action" disabled>Download</button> -->
 				<?= puz.filename ?>
 			</a>
