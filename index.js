@@ -1,6 +1,7 @@
-// v1.2c test
+// v1.2c test with new JPZ XML etc
+// watch test
 
-var activeDoc = DocumentApp.getActiveDocument();
+// var activeDoc = DocumentApp.getActiveDocument();
 var gridRegex = /^[A-Z\.]( [A-Z\.])+$/;
 var clueRegex = /^(\d+)([AD])\t[A-Z]{3,}\t(.*)$/;
 
@@ -12,12 +13,17 @@ function testlib() {
 	Logger.log(res);
 }
 
+function onInstall(e) {
+	onOpen(e);
+}
+
 /** 
  * Adds the menu item on open. 
  */
 function onOpen(e) {
 	DocumentApp.getUi()
 		.createMenu('Puzzle')
+		// .createAddonMenu()
 		.addItem('Upload .puz', 'uploadStarter')
 		.addItem('Download as .puz', 'starter')
 		// .addItem('JPZ test', 'jpzTest')
@@ -40,7 +46,7 @@ function jpzStarter() {
 	var html = HtmlService.createTemplateFromFile('jpzDialog')
 		.evaluate()
 		.setWidth(300)
-		.setHeight(100);
+		.setHeight(150);
 	DocumentApp.getUi().showModalDialog(html, 'Download');
 }
 
@@ -48,8 +54,9 @@ function jpzStarter() {
  * Returns an HTML dialog with a file input to upload a .puz.
  */
 function uploadStarter() {
-	var html = HtmlService.createTemplateFromFile('upload')
-		.evaluate()
+	// var html = HtmlService.createTemplateFromFile('upload')
+	var html = HtmlService.createHtmlOutputFromFile('upload')
+		// .evaluate()
 		.setWidth(300)
 		.setHeight(200);
 	DocumentApp.getUi().showModalDialog(html, 'Upload .puz');
@@ -58,7 +65,7 @@ function uploadStarter() {
 /**
  * Function to make JPZ
  */
-function makeJpzObj() {
+function makeJpzObj(activeDoc) {
 	var paras = getDocParasJPZ(activeDoc).filter(para => para.getText().trim());
 	var paraTexts = paras.map(para => para.getText());
 	var obj = {
@@ -131,7 +138,7 @@ async function processUploadFile(base64data) {
 			para.setIndentStart(144);
 		})
 	} catch (e) {
-		throw new Error ('Unable to upload. Puz file may be corrupt.')
+		throw new Error ('Unable to upload. The .puz file may be invalid.')
 	}
 
 	// Logger.log('processed!')
@@ -146,16 +153,17 @@ async function processUploadFile(base64data) {
  */
 function createPuz() {
 	try {
+		var activeDoc = DocumentApp.getActiveDocument();
 		var puzObj = makePuzObj(activeDoc);
 		var puzBuf = JSON.parse(AppLib.makePuz(puzObj));
 		var puzB64 = puzBuf.data.replace('base64:', '');
 		var docName = activeDoc.getName();
 		return {
-			filename: `${docName}.puz`,
+			filename: `${docName.replace(/ /gi, '_')}.puz`,
 			data: puzB64
 		};
 	} catch (e) {
-		throw new Error ('Couldn\'t make a PUZ file. Check document formatting.')
+		throw new Error ('Couldn\'t make a .puz file. Check document formatting and try again.')
 	}
 }
 
@@ -164,15 +172,16 @@ function createPuz() {
  */
 function createJpz() {
 	try {
-		var jpzXml = makeJpzObj();
+		var activeDoc = DocumentApp.getActiveDocument();
+		var jpzXml = makeJpzObj(activeDoc);
 		var jpzB64 = Utilities.base64Encode(jpzXml, Utilities.Charset.UTF_8);
 		var docName = activeDoc.getName();
 		return {
-			filename: `${docName}.jpz`,
+			filename: `${docName.replace(/ /gi, '_')}.jpz`,
 			data: jpzB64
 		};
 	} catch (e) {
-		throw new Error ('Couldn\'t make a JPZ file. Check document formatting.')
+		throw new Error ('Couldn\'t make a .jpz file. Check document formatting and try again.')
 	}
 }
 
@@ -363,12 +372,17 @@ function makeClues(clueArr) {
 	clueArr.forEach(clue => {
 		var parts = clueRegex.exec(clue);
 		if (parts[2] === 'A') {
-			clues.across[parts[1]] = parts[3]
+			clues.across[parts[1]] = dumbQuotes(parts[3])
 		} else if (parts[2] === 'D') {
-			clues.down[parts[1]] = parts[3]
+			clues.down[parts[1]] = dumbQuotes(parts[3])
 		}
 	});
 	return clues;
+}
+
+function dumbQuotes(clueText) {
+	return clueText.replace(/[“”]/g, '"')
+								 .replace(/[‘’]/g, "'")
 }
 
 /**
@@ -502,7 +516,9 @@ function makeJPZXML(jpzObj, numWords) {
 		<rectangular-puzzle>
 			<metadata></metadata>
 			<crossword>
-				<grid one-letter-words="false"></grid>
+				<grid one-letter-words="false">
+					<grid-look numbering-scheme="normal"></grid-look>
+				</grid>
 			</crossword>
 		</rectangular-puzzle>
 	</crossword-compiler-applet>`);
@@ -593,12 +609,14 @@ function makeJPZXML(jpzObj, numWords) {
 
 	var xmlText = XmlService.getPrettyFormat().format(xDoc);
 
-	return xmlText.replace(/{{{/g, '<').replace(/}}}/g, '>');
+	return xmlText.replace(/{{{/g, '<')
+								.replace(/}}}/g, '>')
+								.replace(/&amp;/g, '&#38;');
 }
 
 // replace non-xml safe characters
 function sanitizeClueText(clueText) {
-	return clueText.replace(/</g, '&lt;')
-								 .replace(/>/g, '&gt;')
-								 .replace(/&/g, '&amp;')
+	return clueText//.replace(/</g, '&lt;')
+								//  .replace(/>/g, '&gt;')
+								//  .replace(/&/g, '&amp;')
 }

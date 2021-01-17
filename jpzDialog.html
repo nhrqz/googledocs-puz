@@ -13,19 +13,23 @@
 		<? var puz = createJpz(); ?>
 
 		<p id="output">Loading...</p>
-		<div id="buttons">
-			<a id="download" download='<?= puz.filename ?>' href='data:;base64,<?= puz.data ?>'>
-				<button id="dl-button" class="action" disabled>Download</button>
+		<div id="download-container">
+			<a id="<?= puz.filename ?>" download='<?= puz.filename ?>' href='data:text/xml;base64,<?= puz.data ?>'>
+				<!-- <button id="dl-button" class="action" disabled>Download</button> -->
+				<?= puz.filename ?>
 			</a>
-			<button id="close-button" onclick="google.script.host.close()">Close</button>
+			<!-- <button id="close-button" onclick="google.script.host.close()">Close</button> -->
 		</div>
 	</body>
 	<script>
 		function allowDl() {
-			var puztitle = document.getElementById('download').getAttribute('download');
+			var puztitle = document.getElementById('download-container')
+														 .getElementsByTagName('a')[0]
+														 .getAttribute('download');
 			var outputText = document.getElementById('output');
-			outputText.innerHTML = 'Download ' + puztitle + '?';
-			document.getElementById("dl-button").disabled = false;
+			// outputText.innerHTML = 'Download ' + puztitle + '?';
+			outputText.innerHTML = 'To download, right-click the link below and select "Save Link As..."'
+			// document.getElementById("dl-button").disabled = false;
 		}
 
 		window.addEventListener('load', allowDl)
